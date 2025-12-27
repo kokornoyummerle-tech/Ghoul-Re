@@ -1,0 +1,77 @@
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local lp = Players.LocalPlayer
+local flying = false
+
+-- AYARLAR
+local SPEED = 1.4
+local VERTICAL_SPEED = 1.8
+
+local function getHRP()
+    local char = lp.Character or lp.CharacterAdded:Wait()
+    return char:WaitForChild("HumanoidRootPart")
+end
+
+local move = {
+    W = false,
+    S = false,
+    A = false,
+    D = false,
+    Up = false,
+    Down = false
+}
+
+-- INPUT BEGIN
+UIS.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+
+    if input.KeyCode == Enum.KeyCode.L then
+        flying = not flying
+    end
+
+    if input.KeyCode == Enum.KeyCode.W then move.W = true end
+    if input.KeyCode == Enum.KeyCode.S then move.S = true end
+    if input.KeyCode == Enum.KeyCode.A then move.A = true end
+    if input.KeyCode == Enum.KeyCode.D then move.D = true end
+    if input.KeyCode == Enum.KeyCode.Space then move.Up = true end
+    if input.KeyCode == Enum.KeyCode.LeftControl then move.Down = true end
+end)
+
+-- INPUT END
+UIS.InputEnded:Connect(function(input)
+    if input.KeyCode == Enum.KeyCode.W then move.W = false end
+    if input.KeyCode == Enum.KeyCode.S then move.S = false end
+    if input.KeyCode == Enum.KeyCode.A then move.A = false end
+    if input.KeyCode == Enum.KeyCode.D then move.D = false end
+    if input.KeyCode == Enum.KeyCode.Space then move.Up = false end
+    if input.KeyCode == Enum.KeyCode.LeftControl then move.Down = false end
+end)
+
+-- FLY LOOP
+RunService.Heartbeat:Connect(function()
+    if not flying then return end
+
+    local hrp = getHRP()
+    local cam = workspace.CurrentCamera
+
+    local direction = Vector3.zero
+
+    if move.W then direction += cam.CFrame.LookVector end
+    if move.S then direction -= cam.CFrame.LookVector end
+    if move.A then direction -= cam.CFrame.RightVector end
+    if move.D then direction += cam.CFrame.RightVector end
+    if move.Up then direction += Vector3.new(0, 1, 0) end
+    if move.Down then direction -= Vector3.new(0, 1, 0) end
+
+    if direction.Magnitude > 0 then
+        direction = direction.Unit
+    end
+
+    local velocity =
+        Vector3.new(direction.X * SPEED, 0, direction.Z * SPEED) +
+        Vector3.new(0, direction.Y * VERTICAL_SPEED, 0)
+
+    hrp.CFrame = hrp.CFrame + velocity
+end)
